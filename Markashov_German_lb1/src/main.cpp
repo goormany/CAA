@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+#define DEBUG true
 #define INDEX(x, y, n) ((y) * (n) + (x))
 
 struct SquareDate{
@@ -18,6 +19,10 @@ private:
     std::vector<SquareDate> best_squares;
 
     int area;
+
+    std::string indent(int depth){
+        return std::string(depth * 2, ' ');
+    }
 
     bool can_place(int x, int y, int size){
         if (x + size > n || y + size > n) return false;
@@ -61,15 +66,18 @@ private:
         new_x = new_y = -1;
     }
 
-    void backtrace(int y){
+    void backtrace(int y, int depth){
         if (cnt_squares >= min_cnt_squares){
+            if (DEBUG) std::cout << indent(depth)
+                << "- Текущее решение хуже лучшего, возвращяюсь на этап назад..." << std::endl;
             return;
         }
         if (area == 0) {
             if (cnt_squares < min_cnt_squares){
                 min_cnt_squares = cnt_squares;
                 best_squares = squares;
-                //std::cout << "Решние с " << cnt_squares << " квадратами" << std::endl;
+                if (DEBUG) std::cout << "\n" << indent(depth) << ">>> Найдено решение: "
+                    << cnt_squares << " квадратов" << " <<<\n" << std::endl;
             }
             return;
         };
@@ -86,10 +94,13 @@ private:
 
         for (int size = max_s; size >= min_s; size--){
             if (can_place(next_x, next_y, size)){
+                if (DEBUG) std::cout << indent(depth) << "+ Пробуем " << size << "x" << size 
+                    << " в точку (" << next_x << "," << next_y << ")\n";
+
                 place_square(next_x, next_y, size, 1);
                 squares.push_back(SquareDate{next_x + 1, next_y + 1, size});
 
-                backtrace(next_y);
+                backtrace(next_y, depth + 1);
 
                 place_square(next_x, next_y, size, 0);
                 squares.pop_back();
@@ -103,26 +114,60 @@ public:
         min_cnt_squares = n * n + 1;
         area = n * n;
 
-        backtrace(0);
+        backtrace(0, 0);
     };
 
     int get_cnt_squares() {return min_cnt_squares;};
     std::vector<SquareDate> get_squares() {return best_squares;};
+
+    void draw_square(){
+        std::vector<std::vector<int>> matrix;
+        matrix.resize(n);
+        for (int y = 0; y < n; y++){
+            matrix[y].assign(n, 0);
+        }
+
+
+        for (int i = 0; i < best_squares.size(); i++){
+            int x = best_squares[i].x - 1;
+            int y = best_squares[i].y - 1;
+            int size = best_squares[i].size;
+            for (int yi = y; yi < y + size; yi++){
+                for (int xi = x; xi < x + size; xi++){
+                    matrix[yi][xi] = i;
+                }
+            }
+        }
+
+        for (int y = 0; y < n; y++){
+            for (int x = 0; x < n; x++){
+                std::cout << matrix[y][x] << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
 };
 
 
 int main(){
     int n;
+
+    if (DEBUG) std::cout << "Введите N (размер квадрата): ";
     std::cin >> n;
 
     Square s(n);
 
+    if (DEBUG) std::cout << "Минимальное кол-во квдаратов из которых можно собрать большой квадрат: ";
     std::cout << s.get_cnt_squares() << std::endl;
 
+    if (DEBUG) std::cout << "X | Y | SIZE" << std::endl;
     auto res = s.get_squares();
     for (auto& sq : res){
         std::cout << sq.x << " " << sq.y << " " << sq.size << std::endl;
     }
+
+    if (DEBUG) std::cout << "\nВизуализация: " << std::endl;
+    if (DEBUG) s.draw_square();
 
     return 0;
 }
