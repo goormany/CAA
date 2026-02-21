@@ -1,7 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 
-#define DEBUG true
+using namespace std::chrono;
+
+#define DEBUG false
 #define INDEX(x, y, n) ((y) * (n) + (x))
 
 struct SquareDate{
@@ -67,7 +70,7 @@ private:
     }
 
     void backtrace(int y, int depth){
-        if (cnt_squares >= min_cnt_squares){
+        if (cnt_squares >= min_cnt_squares - 1 && area > 0){
             if (DEBUG) std::cout << indent(depth)
                 << "- Текущее решение хуже лучшего, возвращяюсь на этап назад..." << std::endl;
             return;
@@ -84,15 +87,11 @@ private:
 
         int next_x, next_y;
         find_first_coord(y, next_x, next_y);
+        if (next_x == -1) return;
 
         int max_s = std::min(n - next_x, n - next_y);
-        int min_s = 1;
-        if (cnt_squares == 0) {
-            max_s = n - 1;
-            min_s = (n + 1) / 2;
-        }
 
-        for (int size = max_s; size >= min_s; size--){
+        for (int size = max_s; size >= 1; size--){
             if (can_place(next_x, next_y, size)){
                 if (DEBUG) std::cout << indent(depth) << "+ Пробуем " << size << "x" << size 
                     << " в точку (" << next_x << "," << next_y << ")\n";
@@ -114,7 +113,15 @@ public:
         min_cnt_squares = n * n + 1;
         area = n * n;
 
-        backtrace(0, 0);
+        for(int size = n - 1; size >= (n + 1) / 2; size--){
+            place_square(0, 0, size, 1);
+            squares.push_back({1, 1, size});
+
+            backtrace(0, 1);
+
+            place_square(0, 0, size, 0);
+            squares.pop_back();
+        }
     };
 
     int get_cnt_squares() {return min_cnt_squares;};
@@ -126,7 +133,6 @@ public:
         for (int y = 0; y < n; y++){
             matrix[y].assign(n, 0);
         }
-
 
         for (int i = 0; i < best_squares.size(); i++){
             int x = best_squares[i].x - 1;
@@ -155,7 +161,12 @@ int main(){
     if (DEBUG) std::cout << "Введите N (размер квадрата): ";
     std::cin >> n;
 
+    auto start = high_resolution_clock::now();
     Square s(n);
+    auto stop = high_resolution_clock::now();
+
+    auto duration = duration_cast<microseconds>(stop - start);
+    std::cout << duration.count() / 1000000 << '.' << duration.count() % 1000000 << std::endl;
 
     if (DEBUG) std::cout << "Минимальное кол-во квдаратов из которых можно собрать большой квадрат: ";
     std::cout << s.get_cnt_squares() << std::endl;
