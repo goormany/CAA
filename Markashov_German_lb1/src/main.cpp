@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <fstream>
 
 using namespace std::chrono;
 
 #define DEBUG false
+#define COLLECT_DATA true
 #define INDEX(x, y, n) ((y) * (n) + (x))
 
 struct SquareDate{
@@ -22,6 +24,8 @@ private:
     std::vector<SquareDate> best_squares;
 
     int area;
+
+    long long cnt_ops{0};
 
     std::string indent(int depth){
         return std::string(depth * 2, ' ');
@@ -70,6 +74,7 @@ private:
     }
 
     void backtrace(int y, int depth){
+        cnt_ops++;
         if (cnt_squares >= min_cnt_squares - 1 && area > 0){
             if (DEBUG) std::cout << indent(depth)
                 << "- Текущее решение хуже лучшего, возвращяюсь на этап назад..." << std::endl;
@@ -109,6 +114,17 @@ private:
 
 public:
     Square(int n) : n(n) {
+        if (n % 2 == 0){
+            cnt_ops++;
+            int size = n / 2;
+            best_squares.push_back(SquareDate({1, 1, size}));
+            best_squares.push_back(SquareDate({1 + size, 1, size}));
+            best_squares.push_back(SquareDate({1, 1 + size, size}));
+            best_squares.push_back(SquareDate({1 + size, 1 + size, size}));
+            min_cnt_squares = 4;
+            return;
+        }
+
         field.assign(n * n, 0);
         min_cnt_squares = n * n + 1;
         area = n * n;
@@ -126,6 +142,7 @@ public:
 
     int get_cnt_squares() {return min_cnt_squares;};
     std::vector<SquareDate> get_squares() {return best_squares;};
+    int get_cnt_ops() {return cnt_ops;};
 
     void draw_square(){
         std::vector<std::vector<int>> matrix;
@@ -154,6 +171,24 @@ public:
     }
 };
 
+void collect_data(int n){
+    std::ofstream file("data.csv");
+
+    if (file.is_open()){
+        file << "n,cnt_ops,time" << std::endl;
+
+        for(int ni = 2; ni < n; ni++){
+            auto start = high_resolution_clock::now();
+            Square s(ni);
+            auto stop = high_resolution_clock::now();
+
+            auto duration = duration_cast<microseconds>(stop - start);
+            file << ni << "," << s.get_cnt_ops() << "," << duration.count() / 1000000 << '.' << duration.count() % 1000000 << std::endl;
+
+        }
+    file.close();
+    }
+}
 
 int main(){
     int n;
@@ -161,12 +196,18 @@ int main(){
     if (DEBUG) std::cout << "Введите N (размер квадрата): ";
     std::cin >> n;
 
+    if (n < 2){
+        return 1;
+    }
+
     auto start = high_resolution_clock::now();
     Square s(n);
     auto stop = high_resolution_clock::now();
 
     auto duration = duration_cast<microseconds>(stop - start);
     std::cout << duration.count() / 1000000 << '.' << duration.count() % 1000000 << std::endl;
+
+    if (DEBUG) std::cout << "Кол-во операций вставки квадратов: " << s.get_cnt_ops() << std::endl;
 
     if (DEBUG) std::cout << "Минимальное кол-во квдаратов из которых можно собрать большой квадрат: ";
     std::cout << s.get_cnt_squares() << std::endl;
@@ -179,6 +220,8 @@ int main(){
 
     if (DEBUG) std::cout << "\nВизуализация: " << std::endl;
     if (DEBUG) s.draw_square();
+
+    if (COLLECT_DATA) collect_data(21);
 
     return 0;
 }
