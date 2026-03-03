@@ -6,7 +6,7 @@
 using namespace std::chrono;
 
 #define DEBUG false
-#define COLLECT_DATA true
+#define COLLECT_DATA false
 #define INDEX(x, y, n) ((y) * (n) + (x))
 
 struct SquareDate{
