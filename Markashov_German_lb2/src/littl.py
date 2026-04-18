@@ -106,6 +106,7 @@ def find_best_zero(matrix: list[list[float]]) -> tuple[tuple[int, int] | None, f
             if matrix[i][j] != 0:
                 continue
             penalty = estimate_zero(matrix, n, i, j)
+            print(f"Штраф для нуля: ({i}, {j}) = {penalty}")
             if penalty > best_penalty:
                 best_penalty = penalty
                 best_pos = (i, j)
@@ -139,12 +140,12 @@ def find_chain_endpoints(edges: list[tuple[int, int]], u: int, v: int) -> tuple[
     start = u
     while start in prev_map:
         start = prev_map[start]
-    
+    print(f"start: {start}")
     # Ищем конец
     end = v
     while end in next_map:
         end = next_map[end]
-    
+    print("end: ", end)
     return start, end
 
 
@@ -162,6 +163,13 @@ def creates_small_cycle(edges: list[tuple[int, int]], u: int, v: int, total_n: i
             return length < total_n
     
     return False
+
+def print_matrix(matrix: list[list[float]]):
+    n = len(matrix)
+    for i in range(n):
+        for j in range(n):
+            print(matrix[i][j], end=" ")
+        print("")  
 
 def tsp_branch_and_bound(matrix: list[list[float]]):
     n = len(matrix)
@@ -181,23 +189,30 @@ def tsp_branch_and_bound(matrix: list[list[float]]):
         nonlocal best_cost, best_path
         
         if bound >= best_cost:
+            print("Уже есть решение лучше текущего. Отсекаем ветку")
             return
         
         if len(matrix) == 1:
+            print("Дошли до матрицы 1x1")
+            print_matrix(matrix)
             u = rows[0]
             v = cols[0]
             final_edges = edges + [(u, v)]
             path = reconstruct_path(final_edges, n)
             cost = sum(orig[path[i]][path[(i + 1) % n]] for i in range(n))
+            print(f"Найденая стоимость: {cost}\nНайденный путь: {path}")
             
             if cost < best_cost:
+                print("Текущее решение лучше найденного")
                 best_cost = cost
                 best_path = path
+                print("Сохранил это решение")
             return
         
         pos, penalty = find_best_zero(matrix)
         if pos is None:
             return
+        print(f"Позиция лучшего нуля: {pos}, Штраф: {penalty}")
         
         i, j = pos
         u = rows[i]
@@ -207,19 +222,23 @@ def tsp_branch_and_bound(matrix: list[list[float]]):
 
         # ветка 1 - не включаем ребро (u, v)
         if not force_left:
+            print(f"Идем в правую ветку. Исключаем ребро: {u} -> {v}")
             right_matrix = matrix_copy(matrix)
             right_matrix[i][j] = INF
             right_bound = bound + reduce_matrix(right_matrix)
+            print("правая матрица после редукции: ", print_matrix(right_matrix))
             
             rec_branch_and_bound(right_matrix, rows, cols, edges, right_bound)
         
         # ветка 2 - включаем ребро (u, v)
         if not creates_small_cycle(edges, u, v, n):
+            print(f"Идем в левую ветку. Исключаем ребро: {u} -> {v}")
             left_matrix = matrix_copy(matrix)
             start, end = find_chain_endpoints(edges, u, v)
             left_matrix, left_rows, left_cols = remove_row_col(left_matrix, rows, cols, i, j)
             forbid_edge(left_matrix, left_rows, left_cols, end, start)
             left_bound = bound + reduce_matrix(left_matrix)
+            print("левая матрица после редукции: ", print_matrix(left_matrix))
             
             rec_branch_and_bound(left_matrix, left_rows, left_cols, edges + [(u, v)], left_bound)
     
