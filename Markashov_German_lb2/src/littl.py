@@ -191,6 +191,10 @@ def tsp_branch_and_bound(matrix: list[list[float]]):
         if bound >= best_cost:
             print("Уже есть решение лучше текущего. Отсекаем ветку")
             return
+
+        print("edges: ", edges)
+        print("matrix:")
+        print_matrix(matrix)
         
         if len(matrix) == 1:
             print("Дошли до матрицы 1x1")
