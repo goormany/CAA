@@ -1,9 +1,13 @@
-def lev_dist_prefixes(s1: str, s2: str):
+def lev_dist_prefixes(s1: str, s2: str, mode="префиксов"):
     n, m = len(s1), len(s2)
     prev = list(range(m + 1))
     curr = [0] * (m + 1)
     
-    dists = [prev[m]]  # расстояние от пустого префикса до s2
+    dists = [prev[m]]
+    
+    print(f"\nРасчет для {mode}")
+    print(f"Сравниваем '{s1}' и '{s2}'")
+    print(f"Начальное состояние (пустой префикс s1): {prev}")
     
     for i in range(1, n + 1):
         curr[0] = i
@@ -12,34 +16,46 @@ def lev_dist_prefixes(s1: str, s2: str):
                 curr[j] = prev[j-1]
             else:
                 curr[j] = min(prev[j], curr[j-1], prev[j-1]) + 1
+        
         dists.append(curr[m])
-        prev, curr = curr, prev
+        print(f"Шаг {i}: подстрока '{s1[:i]}' -> расстояние до s2 = {curr[m]} | Весь ряд: {curr}")
+        
+        # Важно делать копию списка, чтобы prev не ссылался на тот же объект, что и curr
+        prev[:] = curr[:]
     
     return dists
 
 def main():
-    s1 = input()
-    s2 = input()
+    s1 = input("Введите строку s1 (оригинал): ")
+    s2 = input("Введите строку s2 (цель): ")
     n = len(s1)
 
-    prefix_dists = lev_dist_prefixes(s1, s2)
+    # 1. Считаем префиксы
+    prefix_dists = lev_dist_prefixes(s1, s2, mode="префиксов")
     min_pref = min(prefix_dists)
     best_prefixes = [s1[:i] for i, d in enumerate(prefix_dists) if d == min_pref]
     
+    # 2. Считаем суффиксы (используем реверс)
     s1_rev = s1[::-1]
     s2_rev = s2[::-1]
-    suffix_dists_rev = lev_dist_prefixes(s1_rev, s2_rev)
+    suffix_dists_rev = lev_dist_prefixes(s1_rev, s2_rev, mode="суффиксов")
+    
+    # Разворачиваем результаты обратно
     suffix_dists = [0] * (n + 1)
     for k in range(n + 1):
         suffix_dists[n - k] = suffix_dists_rev[k]
 
+    print("\nИТОГОВЫЙ АНАЛИЗ:")
+    print(f"Расстояния для всех префиксов: {prefix_dists}")
+    print(f"Минимальное расстояние префикса = {min_pref}")
+    print(f"Лучшие префиксы: {best_prefixes}")
+    
+    print("-" * 15)
+    print(f"Расстояния для всех суффиксов: {suffix_dists}")
     min_suff = min(suffix_dists)
     best_suffixes = [s1[i:] for i, d in enumerate(suffix_dists) if d == min_suff]
-    
-    print(f"Префиксы: мин. расстояние = {min_pref}")
-    print("Префиксы:", best_prefixes)
-    print(f"Суффиксы: мин. расстояние = {min_suff}")
-    print("Суффиксы:", best_suffixes)
+    print(f"Минимальное расстояние суффикса = {min_suff}")
+    print(f"Лучшие суффиксы: {best_suffixes}")
 
 if __name__ == "__main__":
     main()

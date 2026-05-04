@@ -1,7 +1,8 @@
-def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete: int) -> int:
+def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete: int) -> list:
     n, m = len(s1), len(s2)
     dp = [[0] * (m + 1) for _ in range(n + 1)]
     
+    # 1. Заполнение таблицы
     for i in range(n + 1):
         dp[i][0] = i * cost_delete
     for j in range(m + 1):
@@ -18,39 +19,61 @@ def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete:
                     dp[i-1][j-1] + cost_replace
                 )
 
+    print("\nРезультирующая матрица стоимостей")
+    print_matrix(dp, s1, s2)
+
+    # 2. Восстановление пути (Backtracking)
+    print("\nВосстановление пути (обратный ход)")
     i, j = n, m
     ops = []
 
     while i > 0 or j > 0:
+        current_val = dp[i][j]
+        # Проверяем совпадение
         if i > 0 and j > 0 and s1[i - 1] == s2[j - 1]:
+            print(f"[{i}][{j}] Символы '{s1[i-1]}' совпали -> Идем по диагонали (M)")
             ops.append('M')
             i -= 1
             j -= 1
-        elif i > 0 and j > 0 and dp[i][j] == dp[i - 1][j - 1] + cost_replace:
+        # Проверяем замену
+        elif i > 0 and j > 0 and current_val == dp[i - 1][j - 1] + cost_replace:
+            print(f"[{i}][{j}] Выгодна замена '{s1[i-1]}' на '{s2[j-1]}' -> По диагонали (R)")
             ops.append('R')
             i -= 1
             j -= 1
-        elif i > 0 and dp[i][j] == dp[i - 1][j] + cost_delete:
+        # Проверяем удаление
+        elif i > 0 and current_val == dp[i - 1][j] + cost_delete:
+            print(f"[{i}][{j}] Выгодно удалить '{s1[i-1]}' -> Идем вверх (D)")
             ops.append('D')
             i -= 1
-        elif j > 0 and dp[i][j] == dp[i][j - 1] + cost_insert:
+        # Проверяем вставку
+        elif j > 0 and current_val == dp[i][j - 1] + cost_insert:
+            print(f"[{i}][{j}] Выгодно вставить '{s2[j-1]}' -> Идем влево (I)")
             ops.append('I')
             j -= 1
 
     ops.reverse()
     return ops
-        
 
+def print_matrix(matrix, s1, s2):
+    header = "  " + "  ".join(list(s2))
+    print("    " + header)
+    for i, row in enumerate(matrix):
+        char = s1[i-1] if i > 0 else " "
+        print(f"{char} {row}")
 
 def main():
-    cost_replace, cost_insert, cost_delete = list(map(int, input().split(" ")))
-    s1 = input()
-    s2 = input()
+    c_rep, c_ins, c_del = list(map(int, input("Введите веса (замена вставка удаление) через пробел (например: 1 1 1): ").split(" ")))
+
+    s1 = input("Введите строку s1: ")
+    s2 = input("Введите строку s2: ")
     
-    path = lev_dist(s1, s2, cost_replace, cost_insert, cost_delete)
-    print("".join(path))
-    print(s1)
-    print(s2)
+    path = lev_dist(s1, s2, c_rep, c_ins, c_del)
+    
+
+    print(f"\nИТОГОВАЯ ПОСЛЕДОВАТЕЛЬНОСТЬ: {''.join(path)}")
+    print(f"Оригинал: {s1}")
+    print(f"Цель: {s2}")
 
 if __name__ == "__main__":
     main()
