@@ -28,7 +28,6 @@ def lev_dist(s1: str, s2: str) -> int:
                 dp[i][j] = res
                 print(f"  Символы '{s1[i-1]}' != '{s2[j-1]}'. Минимум из соседей + 1: {dp[i][j]}")
         
-        # Печатаем матрицу после обработки каждой буквы s1
         print_matrix(dp, s1, s2)
         
     return dp[n][m]

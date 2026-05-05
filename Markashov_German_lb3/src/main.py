@@ -20,7 +20,6 @@ def lev_dist_prefixes(s1: str, s2: str, mode="префиксов"):
         dists.append(curr[m])
         print(f"Шаг {i}: подстрока '{s1[:i]}' -> расстояние до s2 = {curr[m]} | Весь ряд: {curr}")
         
-        # Важно делать копию списка, чтобы prev не ссылался на тот же объект, что и curr
         prev[:] = curr[:]
     
     return dists
@@ -30,12 +29,12 @@ def main():
     s2 = input("Введите строку s2 (цель): ")
     n = len(s1)
 
-    # 1. Считаем префиксы
+    # Считаем префиксы
     prefix_dists = lev_dist_prefixes(s1, s2, mode="префиксов")
     min_pref = min(prefix_dists)
     best_prefixes = [s1[:i] for i, d in enumerate(prefix_dists) if d == min_pref]
     
-    # 2. Считаем суффиксы (используем реверс)
+    # Считаем суффиксы (используем реверс)
     s1_rev = s1[::-1]
     s2_rev = s2[::-1]
     suffix_dists_rev = lev_dist_prefixes(s1_rev, s2_rev, mode="суффиксов")
@@ -50,8 +49,7 @@ def main():
     print(f"Минимальное расстояние префикса = {min_pref}")
     print(f"Лучшие префиксы: {best_prefixes}")
     
-    print("-" * 15)
-    print(f"Расстояния для всех суффиксов: {suffix_dists}")
+    print(f"\nРасстояния для всех суффиксов: {suffix_dists}")
     min_suff = min(suffix_dists)
     best_suffixes = [s1[i:] for i, d in enumerate(suffix_dists) if d == min_suff]
     print(f"Минимальное расстояние суффикса = {min_suff}")

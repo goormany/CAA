@@ -2,7 +2,7 @@ def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete:
     n, m = len(s1), len(s2)
     dp = [[0] * (m + 1) for _ in range(n + 1)]
     
-    # 1. Заполнение таблицы
+    # Заполнение таблицы
     for i in range(n + 1):
         dp[i][0] = i * cost_delete
     for j in range(m + 1):
@@ -22,7 +22,7 @@ def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete:
     print("\nРезультирующая матрица стоимостей")
     print_matrix(dp, s1, s2)
 
-    # 2. Восстановление пути (Backtracking)
+    # Восстановление пути (Backtracking)
     print("\nВосстановление пути (обратный ход)")
     i, j = n, m
     ops = []

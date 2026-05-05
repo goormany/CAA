@@ -18,7 +18,6 @@ def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete:
                 dp[i][j] = dp[i - 1][j - 1]
                 print(f"  - '{s1[i-1]}' == '{s2[j-1]}': Совпадение (0)")
             else:
-                # Считаем стоимость каждого варианта
                 val_del = dp[i-1][j] + cost_delete
                 val_ins = dp[i][j-1] + cost_insert
                 val_rep = dp[i-1][j-1] + cost_replace
@@ -26,7 +25,6 @@ def lev_dist(s1: str, s2: str, cost_replace: int, cost_insert: int, cost_delete:
                 res = min(val_del, val_ins, val_rep)
                 dp[i][j] = res
                 
-                # Показываем, что было выбрано
                 op = "Замена" if res == val_rep else ("Удаление" if res == val_del else "Вставка")
                 print(f"  - '{s1[i-1]}' != '{s2[j-1]}': Выбрано {op} ({res})")
         
